@@ -1,5 +1,6 @@
 #!/bin/bash
 for var in "$@"
 do
-  ffmpeg -i "$var" "$var%05d.png"
+  rm $var*.png
+  ffmpeg -i "$var" -r 4 "$var%05d.png"
 done

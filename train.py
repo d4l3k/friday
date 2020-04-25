@@ -13,7 +13,7 @@ transform = transforms.Compose( [
 ])
 
 trainset = torchvision.datasets.ImageFolder(root='./data', transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True, num_workers=8)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=8)
 
 num_classes = 5
 
@@ -34,17 +34,35 @@ net.cuda()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters())
 
-for x, y in trainloader:
-    x = x.cuda()
-    y = y.cuda()
+print("training...")
 
-    optimizer.zero_grad()
-    out = net(x)
-    loss = criterion(out, y)
-    loss.backward()
-    optimizer.step()
-    acc = (out.argmax(1) == y).float().sum() / len(y)
-    print(acc.item(), loss.item(), y)
+for epoch in range(100):
+    num_examples = 0
+    total_acc = 0.0
+    total_loss = 0.0
+
+    for x, y in trainloader:
+        x = x.cuda()
+        y = y.cuda()
+
+        optimizer.zero_grad()
+        out = net(x)
+        loss = criterion(out, y)
+        loss.backward()
+        optimizer.step()
+        acc = (out.argmax(1) == y).float().sum() / len(y)
+
+        total_acc += acc * len(y)
+        total_loss += loss
+        num_examples += len(y)
+
+    print(f"epoch {epoch} - acc {total_acc/num_examples}, loss {total_loss/num_examples}")
+
+    if epoch % 10 == 0:
+        PATH = './friday_net.pth'
+        print(f"saving to {PATH}")
+        torch.save(net.state_dict(), PATH)
+
 
 
 
