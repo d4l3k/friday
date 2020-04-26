@@ -4,3 +4,7 @@
 .gphotos.token
 *.json
 *.pth
+*.tflite
+*.onnx
+saved_model
+__pycache__

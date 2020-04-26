@@ -1,33 +1,18 @@
 import torch
 from torch import nn
-import torchvision
-from torchvision import transforms
-from torchvision import models
 import torch.optim as optim
 import torch.nn.functional as F
+import multiprocessing
+import os
 
-transform = transforms.Compose( [
-    transforms.RandomResizedCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-])
+from model import Net, trainset, valset
 
-trainset = torchvision.datasets.ImageFolder(root='./data', transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=8)
+trainloader = torch.utils.data.DataLoader(
+    trainset, batch_size=32, shuffle=True, num_workers=multiprocessing.cpu_count())
+valloader = torch.utils.data.DataLoader(
+    valset, batch_size=32, shuffle=True, num_workers=multiprocessing.cpu_count())
 
-num_classes = 5
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.cnn = models.mobilenet_v2(pretrained=True)
-        self.cnn.classifier = nn.Sequential(
-          nn.Dropout(0.2),
-          nn.Linear(self.cnn.last_channel, num_classes)
-        )
-
-    def forward(self, x):
-        return self.cnn(x)
+SAVE_EVERY = 10
 
 net = Net()
 net.cuda()
@@ -36,33 +21,44 @@ optimizer = optim.Adam(net.parameters())
 
 print("training...")
 
-for epoch in range(100):
+def train(train, loader):
     num_examples = 0
     total_acc = 0.0
     total_loss = 0.0
 
-    for x, y in trainloader:
+    net.train(train)
+
+    for x, y in loader:
         x = x.cuda()
         y = y.cuda()
 
-        optimizer.zero_grad()
+        if train:
+            optimizer.zero_grad()
         out = net(x)
         loss = criterion(out, y)
-        loss.backward()
-        optimizer.step()
+        if train:
+            loss.backward()
+            optimizer.step()
         acc = (out.argmax(1) == y).float().sum() / len(y)
 
         total_acc += acc * len(y)
         total_loss += loss
         num_examples += len(y)
 
-    print(f"epoch {epoch} - acc {total_acc/num_examples}, loss {total_loss/num_examples}")
-
-    if epoch % 10 == 0:
-        PATH = './friday_net.pth'
-        print(f"saving to {PATH}")
-        torch.save(net.state_dict(), PATH)
+    return total_acc/num_examples, total_loss/num_examples, num_examples
 
 
+if __name__ == "__main__":
+    for epoch in range(100):
+        print(f"epoch {epoch}")
+        acc, loss, num_examples = train(train=True, loader=trainloader)
+        print(f"  - train: acc {acc}, loss {loss}, num_examples {num_examples}")
 
+        with torch.no_grad():
+            acc, loss, num_examples = train(train=False, loader=valloader)
+        print(f"  - val: acc {acc}, loss {loss}, num_examples {num_examples}")
 
+        if (epoch % SAVE_EVERY) == (SAVE_EVERY-1):
+            PATH = './friday_net.pth'
+            print(f"saving to {PATH}")
+            torch.save(net.state_dict(), PATH)
