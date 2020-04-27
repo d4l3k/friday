@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 import torchvision
 from torchvision import models
@@ -57,3 +58,9 @@ class Net(nn.Module):
         return self.cnn(x)
 
 
+def QATNet():
+    net = Net()
+    # quantize aware training
+    net.qconfig = torch.quantization.get_default_qat_qconfig('fbgemm')
+    torch.quantization.prepare_qat(net, inplace=True)
+    return net

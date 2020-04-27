@@ -5,14 +5,14 @@ import torch.nn.functional as F
 import multiprocessing
 import os
 
-from model import Net, trainset, valset
+from model import QATNet, trainset, valset
 
 workers = 16
 
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=64, shuffle=True, num_workers=workers)
+    trainset, batch_size=32, shuffle=True, num_workers=workers)
 valloader = torch.utils.data.DataLoader(
-    valset, batch_size=64, shuffle=True, num_workers=workers)
+    valset, batch_size=32, shuffle=True, num_workers=workers)
 
 SAVE_EVERY = 10
 
