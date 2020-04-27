@@ -6,5 +6,6 @@
 *.pth
 *.tflite
 *.onnx
+*.log
 saved_model
 __pycache__

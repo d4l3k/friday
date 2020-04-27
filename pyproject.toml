@@ -13,6 +13,7 @@ gphotos-sync = "^2.14.0"
 onnx = {path = "../onnx/dist/onnx-1.7.0-cp38-cp38-linux_x86_64.whl"}
 tensorflow = "2.2.0rc3"
 onnx2keras = "^0.0.19"
+xxhash = "^1.4.3"
 
 [tool.poetry.dev-dependencies]
 

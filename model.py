@@ -2,19 +2,21 @@ from torch import nn
 import torchvision
 from torchvision import models
 from torchvision import transforms
+import xxhash
 
 
 
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 
 train_transform = transforms.Compose([
+    transforms.RandomRotation(180),
     transforms.RandomResizedCrop(224),
-    RandomHorizontalFlip(),
-    RandomVerticalFlip(),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
     transform,
 ])
 
@@ -29,7 +31,8 @@ def is_valid(filename):
 
 def is_validation(filename):
     name = filename.split('.')[1]
-    return is_valid(filename) and hash(name) % 10 == 0
+    h = xxhash.xxh64(name).intdigest()
+    return is_valid(filename) and h % 10 == 0
 
 def is_train(filename):
     return is_valid(filename) and not is_validation(filename)

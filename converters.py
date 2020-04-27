@@ -29,11 +29,16 @@ def pytorch2savedmodel(onnx_model_path, saved_model_dir):
     )
 
 
-def savedmodel2tflite(saved_model_dir, tflite_model_path, quantize=False):
+def savedmodel2tflite(saved_model_dir, tflite_model_path, quantize=False,
+        representative_dataset=None):
     saved_model_dir = str(Path(saved_model_dir).joinpath('1'))
     converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
     if quantize:
-        converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        converter.inference_input_type = tf.uint8
+        converter.inference_output_type = tf.uint8
+        converter.representative_dataset = representative_dataset
     tflite_model = converter.convert()
 
     with open(tflite_model_path, 'wb') as f:

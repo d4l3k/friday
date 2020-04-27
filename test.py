@@ -14,4 +14,4 @@ out = net(im)
 probs = out/out.sum()
 
 for klass, prob in zip(trainset.classes, probs[0]):
-    print(klass, prob)
+    print(klass, prob.item())
