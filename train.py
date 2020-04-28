@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import multiprocessing
 import os
 
-from model import QATNet, trainset, valset
+from model import QATNet, Net, trainset, valset
 
 workers = 16
 

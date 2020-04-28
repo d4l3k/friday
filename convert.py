@@ -39,8 +39,8 @@ def dequantize_state_dict(state_dict):
 
 state_dict = torch.load('./friday_net.pth', map_location='cpu')
 
-qat_net = QATNet()
-qat_net.load_state_dict(state_dict)
+#qat_net = QATNet()
+#qat_net.load_state_dict(state_dict)
 
 net = Net()
 net.load_state_dict(dequantize_state_dict(state_dict))
@@ -52,7 +52,7 @@ data = val_transform(im).reshape((1, 3, 224, 224))
 tflite_input = to_tflite_input(data)
 print(tflite_input, tflite_input.mean(), tflite_input.std())
 torch_output = net(data)
-torch_quantize_output = qat_net(data)
+#torch_quantize_output = qat_net(data)
 
 dummy_input = torch.randn(1, 3, 224, 224)
 input_names = ['image_array']
@@ -83,6 +83,6 @@ os.system(f"edgetpu_compiler {tflite_quantized_model_path}")
 tflite_output = get_tflite_outputs(tflite_input, tflite_model).reshape(-1, )
 tflite_quantized_output = get_tflite_outputs(tflite_input, tflite_quantized_model).reshape(-1, )
 print('torch', torch_output)
-print('torch_quantized', torch_output)
+#print('torch_quantized', torch_output)
 print('tflite', tflite_output)
 print('tflite_quantized', tflite_quantized_output)
