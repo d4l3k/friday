@@ -265,7 +265,7 @@ mypy = ["mypy (0.600)"]
 [package.source]
 reference = ""
 type = "file"
-url = "../onnx/dist/onnx-1.7.0-cp38-cp38-linux_x86_64.whl"
+url = "../onnx/dist/onnx-1.7.0-cp37-cp37m-linux_x86_64.whl"
 
 [[package]]
 category = "main"
@@ -502,6 +502,21 @@ version = "1.1.0"
 
 [[package]]
 category = "main"
+description = "TensorFlow Lite is for mobile and embedded devices."
+name = "tflite-runtime"
+optional = false
+python-versions = "*"
+version = "2.1.0.post1"
+
+[package.dependencies]
+numpy = ">=1.12.1"
+
+[package.source]
+reference = ""
+type = "url"
+url = "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl"
+[[package]]
+category = "main"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 name = "torch"
 optional = false
@@ -589,8 +604,8 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "1.4.3"
 
 [metadata]
-content-hash = "97e43ab958be509d3aa8d5afe92196e06cf6515a31c0860d8ba8fc2903522998"
-python-versions = "^3.8"
+content-hash = "9fa40b61875c327d7b9adf1f1823db38658c8afa1f6fac9900991d5dcf1c974e"
+python-versions = "^3.7"
 
 [metadata.files]
 absl-py = [
@@ -756,7 +771,7 @@ oauthlib = [
     {file = "oauthlib-3.1.0.tar.gz", hash = "sha256:bee41cc35fcca6e988463cacc3bcb8a96224f470ca547e697b604cc697b2f889"},
 ]
 onnx = [
-    {file = "onnx-1.7.0-cp38-cp38-linux_x86_64.whl", hash = "sha256:9032edb4ebbee32fb2de075af077335ae0760dda348dcc5b147deee321ce45d4"},
+    {file = "onnx-1.7.0-cp37-cp37m-linux_x86_64.whl", hash = "sha256:6a30b430dd97e0cea7f4eae55ae3f58cd111dfa66176538efeb4ea19719e1c20"},
 ]
 onnx2keras = [
     {file = "onnx2keras-0.0.19.tar.gz", hash = "sha256:eec833f846f3805f7759e3423bf4606d0bd10309731dbcd2252bfba3ec9ac0da"},
@@ -934,6 +949,7 @@ tensorflow-estimator = [
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},
 ]
+tflite-runtime = []
 torch = [
     {file = "torch-1.5.0-cp27-none-macosx_10_7_x86_64.whl", hash = "sha256:6fcfe5deaf0788bbe8639869d3c752ff5fe1bdedce11c7ed2d44379b1fbe6d6c"},
     {file = "torch-1.5.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:931b79aed9aba50bf314214be6efaaf7972ea9539a3d63f82622bc5860a1fd81"},
