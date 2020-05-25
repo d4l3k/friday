@@ -15,6 +15,7 @@ tensorflow = "2.2.0rc3"
 onnx2keras = "^0.0.19"
 xxhash = "^1.4.3"
 tflite-runtime = {url = "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl"}
+captum = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 
