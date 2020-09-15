@@ -3,24 +3,22 @@ from gphotos.authorize import Authorize
 from pathlib import Path
 import requests
 
-classes = {'oldpee', 'newpee', 'clear', 'poop'}
+classes = {"oldpee", "newpee", "clear", "poop"}
+
 
 def trace(*args):
     pass
+
+
 log.trace = trace
 
 scope = [
     "https://www.googleapis.com/auth/photoslibrary.readonly",
 ]
-photos_api_url = (
-    "https://photoslibrary.googleapis.com/$discovery"
-    "/rest?version=v1"
-)
+photos_api_url = "https://photoslibrary.googleapis.com/$discovery" "/rest?version=v1"
 credentials_file = Path(".gphotos.token")
 secret_file = Path("client_secret.json")
-auth = Authorize(
-    scope, credentials_file, secret_file, 3
-)
+auth = Authorize(scope, credentials_file, secret_file, 3)
 auth.authorize()
 client = RestClient(photos_api_url, auth.session)
 
@@ -43,7 +41,7 @@ class RespIter:
                 token = self.json.get("nextPageToken")
                 if not token:
                     raise StopIteration
-                self.kwargs['pageToken'] = token
+                self.kwargs["pageToken"] = token
             if self.expand:
                 resp = self.method(**self.kwargs)
             else:
@@ -61,14 +59,13 @@ class RespIter:
         return item
 
 
-
-print('fetching class ids...')
+print("fetching class ids...")
 class_ids = {}
 
-for album in RespIter(client.albums.list.execute, 'albums', pageSize=50):
-    name = album.get('title', '').lower()
+for album in RespIter(client.albums.list.execute, "albums", pageSize=50):
+    name = album.get("title", "").lower()
     if name in classes:
-        class_ids[name] = album['id']
+        class_ids[name] = album["id"]
 
 
 assert len(class_ids) == len(classes)
@@ -76,12 +73,18 @@ print(f"class_ids {class_ids}")
 
 for name, id in class_ids.items():
     print(f"downloading {name}")
-    for item in RespIter(client.mediaItems.search.execute, 'mediaItems', expand=False, albumId=id, pageSize=100):
-        type = 'dv' if '.mp4' in item['filename'] else 'd'
-        url = item['baseUrl'] + '=' + type
+    for item in RespIter(
+        client.mediaItems.search.execute,
+        "mediaItems",
+        expand=False,
+        albumId=id,
+        pageSize=100,
+    ):
+        type = "dv" if ".mp4" in item["filename"] else "d"
+        url = item["baseUrl"] + "=" + type
         filename = f"data/{name}/{item['filename']}"
         print(f"downloading {filename}")
         r = requests.get(url, allow_redirects=True)
         r.raise_for_status()
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             f.write(r.content)

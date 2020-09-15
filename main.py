@@ -21,8 +21,10 @@ def go(f):
     t.start()
     threads.append(t)
 
+
 def prometheus():
     start_http_server(2112)
+
 
 go(capture.main)
 go(infer.main)

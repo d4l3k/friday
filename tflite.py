@@ -7,8 +7,8 @@ def get_tflite_outputs(input_array, tflite_model):
 
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-    interpreter.set_tensor(input_details[0]['index'], input_array)
+    interpreter.set_tensor(input_details[0]["index"], input_array)
     interpreter.invoke()
 
-    tflite_results = interpreter.get_tensor(output_details[0]['index'])
+    tflite_results = interpreter.get_tensor(output_details[0]["index"])
     return tflite_results
