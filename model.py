@@ -123,7 +123,27 @@ class MultiTaskDataset(Dataset):
             pad_counts[pad] += 1
             friday_counts[friday] += 1
 
-        print(f'friday {friday_counts}, pad {pad_counts}')
+        print(f"friday {friday_counts}, pad {pad_counts}")
+
+    def weights(self):
+        pad_counts = torch.zeros(len(PadLabel))
+        friday_counts = torch.zeros(len(FridayLabel))
+        for _, pad, friday in self.examples:
+            pad_counts[pad] += 1
+            friday_counts[friday] += friday
+
+        print(f"pad counts {pad_counts}")
+        print(f"friday counts {friday_counts}")
+
+        pad_weights = 1/(pad_counts/pad_counts.avg()) * [1, 1, 1, 2]
+        friday_weights = 1/(friday_counts/friday_counts.avg())
+
+        print(f"pad weights {pad_weights}")
+        print(f"friday weights {friday_weights}")
+
+
+        return pad_weights, friday_weights
+
 
     def __getitem__(self, index):
         filename, pad, friday = self.examples[index]

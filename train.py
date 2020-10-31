@@ -20,11 +20,12 @@ valloader = torch.utils.data.DataLoader(
 
 net = Net()
 net.cuda()
+pad_weights, friday_weights = trainset.weights()
 pad_criterion = nn.CrossEntropyLoss(
-    weight=torch.tensor([1, 1, 1, 2], dtype=torch.float).cuda(),
+    weight=pad_weights.cuda(),
 )
 friday_criterion = nn.CrossEntropyLoss(
-    weight=torch.tensor([0.2, 2], dtype=torch.float).cuda(),
+    weight=friday_weights.cuda(),
 )
 friday_criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
