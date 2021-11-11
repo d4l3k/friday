@@ -7,8 +7,8 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-torch = "^1.5.0"
-torchvision = "^0.6.0"
+torch = "^1.10.0"
+torchvision = "^0.11.1"
 gphotos-sync = "^2.14.0"
 onnx = {path = "../onnx/dist/onnx-1.7.0-cp37-cp37m-linux_x86_64.whl"}
 tensorflow = "2.2.0rc3"

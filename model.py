@@ -135,8 +135,8 @@ class MultiTaskDataset(Dataset):
         print(f"pad counts {pad_counts}")
         print(f"friday counts {friday_counts}")
 
-        pad_weights = 1/(pad_counts/pad_counts.avg()) * [1, 1, 1, 2]
-        friday_weights = 1/(friday_counts/friday_counts.avg())
+        pad_weights = 1/(pad_counts/pad_counts.mean()) * torch.tensor([1, 1, 1, 2])
+        friday_weights = 1/(friday_counts/friday_counts.mean())
 
         print(f"pad weights {pad_weights}")
         print(f"friday weights {friday_weights}")
@@ -173,11 +173,12 @@ class Net(nn.Module):
             nn.Dropout(0.2),
         )
         self.pad = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
-        self.friday = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
+        #self.friday = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
 
     def forward(self, x):
         x = self.cnn(x)
-        return self.pad(x), self.friday(x)
+        return self.pad(x)
+        #return self.pad(x), self.friday(x)
 
 
 def QATNet():

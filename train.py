@@ -18,7 +18,10 @@ valloader = torch.utils.data.DataLoader(
     valset, batch_size=32, shuffle=True, num_workers=workers, pin_memory=True
 )
 
+print("creating net")
+
 net = Net()
+print(net)
 net.cuda()
 pad_weights, friday_weights = trainset.weights()
 pad_criterion = nn.CrossEntropyLoss(
@@ -71,17 +74,18 @@ def train(train, loader):
 
         if train:
             optimizer.zero_grad()
-        pad_out, friday_out = net(img)
+        pad_out = net(img)
+        #pad_out, friday_out = net(img)
         loss = pad_criterion(pad_out, pad)
-        loss += friday_criterion(friday_out, friday)
+        #loss += friday_criterion(friday_out, friday)
         if train:
             loss.backward()
             optimizer.step()
         pad_acc = (pad_out.argmax(1) == pad).float().sum() / len(pad)
-        friday_acc = (friday_out.argmax(1) == friday).float().sum() / len(pad)
+        #friday_acc = (friday_out.argmax(1) == friday).float().sum() / len(pad)
 
         total_pad_acc += pad_acc * len(pad)
-        total_friday_acc += friday_acc * len(pad)
+        #total_friday_acc += friday_acc * len(pad)
         total_loss += loss
         num_examples += len(pad)
 
