@@ -1,4 +1,4 @@
-import tflite_runtime.interpreter as tflite
+import torch
 import io
 from PIL import Image
 import numpy as np
@@ -13,12 +13,10 @@ from prometheus_client import Gauge, Summary
 
 import camera
 
-USE_TPU = False
-model_file = "model_quantized_edgetpu.tflite" if USE_TPU else "model.tflite"
+from model import Net, val_transform
+
+model_file = "./friday_net.pth"
 classes = ["clear", "newpee", "oldpee", "poop"]
-mean = np.array([0.485, 0.456, 0.406])
-std = np.array([0.229, 0.224, 0.225])
-EDGETPU_SHARED_LIB = "/usr/lib/libedgetpu.so.1"
 REMIND_TIME = 15
 
 
@@ -49,21 +47,6 @@ def measure(name):
     start = time.time()
     yield
     sprint(f"{name} took {time.time() - start}")
-
-
-def center_crop(im):
-    width, height = im.size  # Get dimensions
-
-    box = min(width, height)
-
-    left = (width - box) / 2
-    top = (height - box) / 2
-    right = (width + box) / 2
-    bottom = (height + box) / 2
-
-    # Crop the center of the image
-    return im.crop((left, top, right, bottom))
-
 
 class throttle(object):
     """
@@ -102,14 +85,7 @@ def capture():
     camera.capture(stream, format="jpeg", use_video_port=True)
     stream.seek(0)
     image = Image.open(stream).convert("RGB")
-    size = (224, 224)
-    cropped = center_crop(image).resize(size, Image.BILINEAR)
-    pix = (
-        (((np.array(cropped) / 255) - mean) / std)
-        .reshape((1, 224, 224, 3))
-        .astype(np.float32)
-    )
-    return image, pix
+    return image, val_transform(image)
 
 
 @dataclass
@@ -130,13 +106,11 @@ def handle_poop(recent_images):
 
 def main():
     sprint("loading model...")
-    interpreter = tflite.Interpreter(
-        model_path=model_file,
-        experimental_delegates=[tflite.load_delegate(EDGETPU_SHARED_LIB, {})]
-        if USE_TPU
-        else None,
-    )
-    interpreter.allocate_tensors()
+    net = Net()
+    net.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
+    net.eval()
+
+    net = torch.quantization.convert(net)
 
     smoothed_class = None
     last_class = None
@@ -149,16 +123,13 @@ def main():
         image, data = capture()
 
         with INFERENCE_TIME.time():
-            input_details = interpreter.get_input_details()
-            output_details = interpreter.get_output_details()
-            interpreter.set_tensor(input_details[0]["index"], data)
-            interpreter.invoke()
-            tflite_results = interpreter.get_tensor(output_details[0]["index"])[0]
+            with torch.no_grad():
+                out = net(data.unsqueeze(0))
 
-        all_classes = list(zip(classes, tflite_results))
-        class_idx = np.argmax(tflite_results)
+        all_classes = list(zip(classes, out[0]))
+        class_idx = out.argmax(1).item()
         class_name = classes[class_idx]
-        class_prob = tflite_results[class_idx]
+        class_prob = out[0, class_idx]
         sprint(f"{class_name} ({class_prob}) - {all_classes}")
 
         for klass, prob in all_classes:
@@ -191,3 +162,6 @@ def main():
             if last_reminder < (time.time() - REMIND_TIME):
                 alert_poop()
                 last_reminder = time.time()
+
+if __name__ == "__main__":
+    main()
