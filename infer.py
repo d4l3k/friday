@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
 from prometheus_client import Gauge, Summary
-
-import camera
+import cv2
 
 from model import Net, val_transform
 
@@ -19,6 +18,8 @@ model_file = "./friday_net.pth"
 classes = ["clear", "newpee", "oldpee", "poop"]
 REMIND_TIME = 15
 
+
+CAPTURE_TIME = Summary("capture_time", "time spent to capture a frame")
 
 INFERENCE_TIME = Summary("inference_time", "time spent to run inference on a frame")
 gauges = {
@@ -80,11 +81,10 @@ def handle_newpee():
     os.system("aplay ./WAV/acc_steer_on.wav")
 
 
-def capture():
-    stream = io.BytesIO()
-    camera.capture(stream, format="jpeg", use_video_port=True)
-    stream.seek(0)
-    image = Image.open(stream).convert("RGB")
+@CAPTURE_TIME.time()
+def capture(cap):
+    ret, img = cap.read()
+    image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     return image, val_transform(image)
 
 
@@ -97,6 +97,9 @@ class Capture:
 def alert_poop():
     os.system("aplay ./WAV/alert_chime.wav")
 
+def boot():
+    os.system("aplay ./WAV/start_recording.wav")
+
 
 def handle_poop(recent_images):
     alert_poop()
@@ -104,13 +107,18 @@ def handle_poop(recent_images):
         recent.image.save(recent.name)
 
 
+@torch.no_grad()
 def main():
+    boot()
     sprint("loading model...")
-    net = Net()
-    net.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
-    net.eval()
 
-    net = torch.quantization.convert(net)
+    if False:
+        net = Net()
+        net.load_state_dict(torch.load(model_file, map_location=torch.device('cpu')))
+        net.eval()
+    else:
+        net = torch.jit.load('friday_net_quant_jit.pt')
+        net.eval()
 
     smoothed_class = None
     last_class = None
@@ -119,12 +127,16 @@ def main():
     recent_images = deque(maxlen=10)
     last_reminder = 0
 
+    cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
+    cap.set(cv2.CAP_PROP_FPS, 40)
+
     while True:
-        image, data = capture()
+        image, data = capture(cap)
 
         with INFERENCE_TIME.time():
-            with torch.no_grad():
-                out = net(data.unsqueeze(0))
+            out = net(data.unsqueeze(0))
 
         all_classes = list(zip(classes, out[0]))
         class_idx = out.argmax(1).item()

@@ -9,3 +9,4 @@
 *.log
 saved_model
 __pycache__
+*.pt

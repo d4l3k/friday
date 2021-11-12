@@ -123,7 +123,7 @@ class MultiTaskDataset(Dataset):
             pad_counts[pad] += 1
             friday_counts[friday] += 1
 
-        print(f"friday {friday_counts}, pad {pad_counts}")
+        # print(f"friday {friday_counts}, pad {pad_counts}")
 
     def weights(self):
         pad_counts = torch.zeros(len(PadLabel))
@@ -168,16 +168,21 @@ NUM_FRIDAY_CLASSES = len(FridayLabel)
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.cnn = models.mobilenet_v2(pretrained=True)
+        self.cnn = models.quantization.mobilenet_v2(pretrained=True)
         self.cnn.classifier = nn.Sequential(
             nn.Dropout(0.2),
         )
         self.pad = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
         #self.friday = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
 
+    def fuse_model(self):
+        self.cnn.fuse_model()
+
     def forward(self, x):
-        x = self.cnn(x)
-        return self.pad(x)
+        x = self.cnn.quant(x)
+        x = self.cnn._forward_impl(x)
+        x = self.pad(x)
+        return self.cnn.dequant(x)
         #return self.pad(x), self.friday(x)
 
 
