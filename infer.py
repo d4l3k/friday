@@ -10,16 +10,19 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
 from prometheus_client import Gauge, Summary
+from camera import capture, now_str
 import cv2
 
 from model import Net, val_transform
+
+torch.backends.quantized.engine = 'qnnpack'
 
 model_file = "./friday_net.pth"
 classes = ["clear", "newpee", "oldpee", "poop"]
 REMIND_TIME = 15
 
 
-CAPTURE_TIME = Summary("capture_time", "time spent to capture a frame")
+TRANSFORM_TIME = Summary("transform_time", "time spent to transform a frame")
 
 INFERENCE_TIME = Summary("inference_time", "time spent to run inference on a frame")
 gauges = {
@@ -81,13 +84,6 @@ def handle_newpee():
     os.system("aplay ./WAV/acc_steer_on.wav")
 
 
-@CAPTURE_TIME.time()
-def capture(cap):
-    ret, img = cap.read()
-    image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    return image, val_transform(image)
-
-
 @dataclass
 class Capture:
     name: str
@@ -127,13 +123,12 @@ def main():
     recent_images = deque(maxlen=10)
     last_reminder = 0
 
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
-    cap.set(cv2.CAP_PROP_FPS, 40)
+    sprint("starting inference, may take a minute for jit to compile")
 
     while True:
-        image, data = capture(cap)
+        image = capture()
+        with TRANSFORM_TIME.time():
+            data = val_transform(image)
 
         with INFERENCE_TIME.time():
             out = net(data.unsqueeze(0))
@@ -148,7 +143,7 @@ def main():
             gauges[klass].set(prob)
 
         recent_images.append(
-            Capture(name=f"unknown/{camera.now_str()}.jpg", image=image)
+            Capture(name=f"unknown/{now_str()}.jpg", image=image)
         )
 
         if last_class != class_name:

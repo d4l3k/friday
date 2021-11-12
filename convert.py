@@ -45,7 +45,7 @@ net = Net()
 net.load_state_dict(dequantize_state_dict(state_dict))
 net.eval()
 
-net.qconfig = torch.quantization.get_default_qconfig('fbgemm')
+net.qconfig = torch.quantization.get_default_qconfig('qnnpack')
 net.fuse_model()
 model_fp32_prepared = torch.quantization.prepare(net)
 

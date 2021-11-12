@@ -24,5 +24,5 @@ def main():
             category = code_to_category.get(event.keycode)
             print("key_pressed:", desc, category)
             if category and event.keystate == KeyEvent.key_down:
-                camera.capture(f"data/{category}/{time}.jpg", format="jpeg")
+                camera.capture().save(f"data/{category}/{time}.jpg")
                 os.system("aplay ./WAV/lock_chime.wav")
