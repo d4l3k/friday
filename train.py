@@ -8,7 +8,7 @@ import os
 from model import QATNet, Net, trainset, valset
 
 workers = 16
-epochs = 50
+epochs = 40
 
 
 trainloader = torch.utils.data.DataLoader(
@@ -31,7 +31,7 @@ friday_criterion = nn.CrossEntropyLoss(
     weight=friday_weights.cuda(),
 )
 friday_criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(), lr=0.0001)
+optimizer = optim.AdamW(net.parameters(), lr=0.0001)
 
 # schedulers
 

@@ -3,7 +3,6 @@
 set -ex
 
 
-#poetry run python convert.py
 python convert.py
 
-scp *.tflite alarm@192.168.86.73:inference/
+rsync -rav model.py infer.py friday_net_quant_jit.pt main.py camera.py alarm@192.168.86.73:inference/

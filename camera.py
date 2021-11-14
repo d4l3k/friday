@@ -24,5 +24,5 @@ def capture():
 
 
 def now_str() -> str:
-    return datetime.datetime.now().replace(microsecond=0).isoformat()
+    return datetime.datetime.now().isoformat()
 
