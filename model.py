@@ -23,8 +23,8 @@ transform = transforms.Compose(
 
 train_transform = transforms.Compose(
     [
-        transforms.RandomRotation(180),
-        transforms.RandomResizedCrop(224),
+        transforms.RandomRotation(15),
+        transforms.RandomResizedCrop(224, ratio=(0.9, 1.0)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transform,
@@ -135,7 +135,7 @@ class MultiTaskDataset(Dataset):
         print(f"pad counts {pad_counts}")
         print(f"friday counts {friday_counts}")
 
-        pad_weights = 1/(pad_counts/pad_counts.mean()) * torch.tensor([1, 1, 1, 2])
+        pad_weights = 1/(pad_counts/pad_counts.mean()) # * torch.tensor([1, 1, 1, 2])
         friday_weights = 1/(friday_counts/friday_counts.mean())
 
         print(f"pad weights {pad_weights}")
@@ -164,27 +164,10 @@ valset = MultiTaskDataset(
 NUM_CLASSES = len(PAD_LABELS)
 NUM_FRIDAY_CLASSES = len(FridayLabel)
 
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.cnn = models.quantization.mobilenet_v2(pretrained=True)
-        self.cnn.classifier = nn.Sequential(
-            nn.Dropout(0.2),
-        )
-        self.pad = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
-        #self.friday = nn.Linear(self.cnn.last_channel, NUM_CLASSES)
-
-    def fuse_model(self):
-        self.cnn.fuse_model()
-
-    def forward(self, x):
-        x = self.cnn.quant(x)
-        x = self.cnn._forward_impl(x)
-        x = self.pad(x)
-        return self.cnn.dequant(x)
-        #return self.pad(x), self.friday(x)
-
+def Net():
+    m = models.quantization.mobilenet_v2(pretrained=True)
+    m.classifier[-1] = nn.Linear(1280, NUM_CLASSES)
+    return m
 
 def QATNet():
     net = Net()

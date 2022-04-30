@@ -12,17 +12,17 @@ epochs = 40
 
 
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=32, shuffle=True, num_workers=workers, pin_memory=True
+    trainset, batch_size=128, shuffle=True, num_workers=workers, pin_memory=True
 )
 valloader = torch.utils.data.DataLoader(
-    valset, batch_size=32, shuffle=True, num_workers=workers, pin_memory=True
+    valset, batch_size=128, shuffle=True, num_workers=workers, pin_memory=True
 )
 
 print("creating net")
 
 net = Net()
 print(net)
-net.cuda()
+net = net.cuda()
 pad_weights, friday_weights = trainset.weights()
 pad_criterion = nn.CrossEntropyLoss(
     weight=pad_weights.cuda(),
@@ -31,7 +31,7 @@ friday_criterion = nn.CrossEntropyLoss(
     weight=friday_weights.cuda(),
 )
 friday_criterion = nn.CrossEntropyLoss()
-optimizer = optim.AdamW(net.parameters(), lr=0.0001)
+optimizer = optim.AdamW(net.parameters(), lr=1e-4)
 
 # schedulers
 

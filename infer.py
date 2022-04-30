@@ -103,7 +103,7 @@ def handle_poop(recent_images):
         recent.image.save(recent.name)
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def main():
     boot()
     sprint("loading model...")
